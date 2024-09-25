@@ -7,8 +7,6 @@ public class client {
     public static void main(String[] args) {
         serverHandler svHandler = new serverHandler();
         svHandler.start();
-        LoginForm loginForm = new LoginForm();
-        loginForm.setVisible(true);
 
     }
 }

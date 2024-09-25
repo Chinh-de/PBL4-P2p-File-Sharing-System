@@ -26,13 +26,13 @@ public class file_peerDAL {
     }
 
     // Create a new file-peer relationship
-    public void createfile_peer(file_peer filePeer) {
+    public void createfile_peer(int fileId, String peerUsername, String path ) {
         String sql = "INSERT INTO file_peer (fileId, peerUsername, path) VALUES (?, ?, ?)";
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, filePeer.getFileid());
-            pstmt.setString(2, filePeer.getPeerUsername());
-            pstmt.setString(3, filePeer.getPath());
+            pstmt.setInt(1, fileId);
+            pstmt.setString(2, peerUsername);
+            pstmt.setString(3, path);
             pstmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();

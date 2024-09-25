@@ -4,8 +4,8 @@ import java.util.List;
 
 public class file {
     private int id;
+    private String name;
     private long size;
-    private String describe;
     private List<file_peer> owners ;
       
     public int getId() {
@@ -16,20 +16,20 @@ public class file {
         this.id = id;
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String Name) {
+        this.name = Name;
+    }
+
     public long getSize() {
         return size;
     }
 
     public void setSize(long size) {
         this.size = size;
-    }
-
-    public String getDescribe() {
-        return describe;
-    }
-
-    public void setDescribe(String Describe) {
-        this.describe = Describe;
     }
 
     public List<file_peer> getOwners() {

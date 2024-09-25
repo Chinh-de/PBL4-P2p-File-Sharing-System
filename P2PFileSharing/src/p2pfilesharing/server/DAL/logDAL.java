@@ -27,7 +27,7 @@ public class logDAL {
 
     // Create a new log entry
     public void createLog(log Log) {
-        String sql = "INSERT INTO logs (username, action, time) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO log (username, action, time) VALUES (?, ?, ?)";
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, Log.getUsername());
@@ -42,7 +42,7 @@ public class logDAL {
     // Retrieve a log entry by id
     public log getLog(int id) {
         log Log = null;
-        String sql = "SELECT * FROM logs WHERE id = ?";
+        String sql = "SELECT * FROM log WHERE id = ?";
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, id);
@@ -62,7 +62,7 @@ public class logDAL {
 
     // Update an existing log entry
     public void updateLog(log Log) {
-        String sql = "UPDATE logs SET username = ?, action = ?, time = ? WHERE id = ?";
+        String sql = "UPDATE log SET username = ?, action = ?, time = ? WHERE id = ?";
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, Log.getUsername());
@@ -77,7 +77,7 @@ public class logDAL {
 
     // Delete a log entry by id
     public void deleteLog(int id) {
-        String sql = "DELETE FROM logs WHERE id = ?";
+        String sql = "DELETE FROM log WHERE id = ?";
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, id);
@@ -90,7 +90,7 @@ public class logDAL {
     // Retrieve all log entries
     public List<log> getAllLogs() {
         List<log> logs = new ArrayList<>();
-        String sql = "SELECT * FROM logs";
+        String sql = "SELECT * FROM log";
         try (Connection conn = getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {

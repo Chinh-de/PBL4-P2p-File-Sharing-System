@@ -24,21 +24,27 @@ public class fileDAL {
         return DatabaseConnection.getConnection();
     }
 
-    public void createFile(file file) {
-        String sql = "INSERT INTO files (size, describe) VALUES (?, ?)";
+    public int createFile(String name, long size) {
+        String sql = "INSERT INTO file (name, size) VALUES (?, ?)";
         try (Connection conn = getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setLong(1, file.getSize());
-            pstmt.setString(2, file.getDescribe());
+             PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            pstmt.setString(1, name);
+            pstmt.setLong(2, size);
             pstmt.executeUpdate();
+
+            ResultSet rs = pstmt.getGeneratedKeys();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        return -1;
     }
 
     public file getFile(int id) {
         file file = null;
-        String sql = "SELECT * FROM files WHERE id = ?";
+        String sql = "SELECT * FROM file WHERE id = ?";
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, id);
@@ -47,7 +53,7 @@ public class fileDAL {
                 file = new file();
                 file.setId(rs.getInt("id"));
                 file.setSize(rs.getLong("size"));
-                file.setDescribe(rs.getString("describe"));
+                file.setName(rs.getString("name"));
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -56,11 +62,11 @@ public class fileDAL {
     }
 
     public void updateFile(file file) {
-        String sql = "UPDATE files SET size = ?, describe = ? WHERE id = ?";
+        String sql = "UPDATE file SET size = ?, name = ? WHERE id = ?";
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setLong(1, file.getSize());
-            pstmt.setString(2, file.getDescribe());
+            pstmt.setString(2, file.getName());
             pstmt.setInt(3, file.getId());
             pstmt.executeUpdate();
         } catch (SQLException e) {
@@ -69,7 +75,7 @@ public class fileDAL {
     }
 
     public void deleteFile(int id) {
-        String sql = "DELETE FROM files WHERE id = ?";
+        String sql = "DELETE FROM file WHERE id = ?";
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, id);
@@ -81,7 +87,7 @@ public class fileDAL {
 
     public List<file> getAllFiles() {
         List<file> files = new ArrayList<>();
-        String sql = "SELECT * FROM files";
+        String sql = "SELECT * FROM file";
         try (Connection conn = getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
@@ -89,7 +95,7 @@ public class fileDAL {
                 file file = new file();
                 file.setId(rs.getInt("id"));
                 file.setSize(rs.getLong("size"));
-                file.setDescribe(rs.getString("describe"));
+                file.setName(rs.getString("name"));
                 files.add(file);
             }
         } catch (SQLException e) {

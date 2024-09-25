@@ -43,6 +43,18 @@ public class serverConnection {
         output.println(request);
     }
 
+    public void sendUploadRequest (String filename, String path, long size)
+    {
+        String request = "UPLOAD|" + filename + "|" + path + "|" + size;
+        output.println(request);
+    }
+
+    public void sendRefreshRequest ()
+    {
+        String request = "REFRESH|";
+        output.println(request);
+    }
+
     // Nhận phản hồi từ server
     public String receiveResponse() throws IOException {
         return input.readLine(); // Đọc phản hồi từ server

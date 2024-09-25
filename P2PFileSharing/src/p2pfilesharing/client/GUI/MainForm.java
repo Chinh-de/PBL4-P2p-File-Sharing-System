@@ -217,34 +217,6 @@ public class MainForm extends javax.swing.JFrame {
         System.exit(0);
     }//GEN-LAST:event_exitMenuItemActionPerformed
 
-    private void btnNameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnNameActionPerformed
-        
-        try {
-            // Sinh port ngẫu nhiên cho peer và kết nối tới CentralServer
-            peerPort = 10000 + (int) (Math.random() * 5000); // Port ngẫu nhiên từ 10000 đến 14999
-            peerListener = new ServerSocket(peerPort);
-            fileTransferExecutor = Executors.newFixedThreadPool(10); // Hỗ trợ 10 kết nối đồng thời
-
-            System.out.println("Peer đang lắng nghe trên port " + peerPort);
-
-            // Kết nối tới CentralServer
-            serverSocket = new Socket(SERVER_ADDRESS, SERVER_PORT);
-            serverOut = new PrintWriter(serverSocket.getOutputStream(), true);
-            serverIn = new BufferedReader(new InputStreamReader(serverSocket.getInputStream()));
-
-            // Đăng ký với CentralServer
-            serverOut.println(txtName.getText()); // Tên peer
-            serverOut.println(peerPort); // Port ngẫu nhiên
-            
-
-            // Khởi chạy thread để nhận kết nối và gửi file
-            new Thread(MainForm::listenForFileRequests).start();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }//GEN-LAST:event_btnNameActionPerformed
-
     private void btnRefreshActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRefreshActionPerformed
         requestFileListFromServer();
     }//GEN-LAST:event_btnRefreshActionPerformed
@@ -269,6 +241,33 @@ public class MainForm extends javax.swing.JFrame {
         }
         
     }//GEN-LAST:event_btnDownloadActionPerformed
+
+    private void btnNameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnNameActionPerformed
+
+        try {
+            // Sinh port ngẫu nhiên cho peer và kết nối tới CentralServer
+            peerPort = 10000 + (int) (Math.random() * 5000); // Port ngẫu nhiên từ 10000 đến 14999
+            peerListener = new ServerSocket(peerPort);
+            fileTransferExecutor = Executors.newFixedThreadPool(10); // Hỗ trợ 10 kết nối đồng thời
+
+            System.out.println("Peer đang lắng nghe trên port " + peerPort);
+
+            // Kết nối tới CentralServer
+            serverSocket = new Socket(SERVER_ADDRESS, SERVER_PORT);
+            serverOut = new PrintWriter(serverSocket.getOutputStream(), true);
+            serverIn = new BufferedReader(new InputStreamReader(serverSocket.getInputStream()));
+
+            // Đăng ký với CentralServer
+            serverOut.println(txtName.getText()); // Tên peer
+            serverOut.println(peerPort); // Port ngẫu nhiên
+
+            // Khởi chạy thread để nhận kết nối và gửi file
+            new Thread(MainForm::listenForFileRequests).start();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }//GEN-LAST:event_btnNameActionPerformed
 
     /**
      * @param args the command line arguments

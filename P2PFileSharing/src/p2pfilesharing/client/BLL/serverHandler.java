@@ -1,19 +1,19 @@
 package p2pfilesharing.client.BLL;
 
+import p2pfilesharing.client.GUI.AppForm;
 import p2pfilesharing.client.GUI.LoginForm;
 import p2pfilesharing.client.GUI.MainForm;
 
 import javax.swing.*;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.Socket;
 
 public class serverHandler extends Thread {
     private Socket socket;
     private BufferedReader in;
     private PrintWriter out;
+    LoginForm loginForm = new LoginForm();
+    AppForm appForm = new AppForm();
 
     public serverHandler() {
         try {
@@ -34,6 +34,7 @@ public class serverHandler extends Thread {
     // Lắng nghe phản hồi từ server
     @Override
     public void run() {
+        loginForm.setVisible(true);
         try {
             String response;
             while ((response = in.readLine()) != null) {
@@ -59,9 +60,11 @@ public class serverHandler extends Thread {
 
             switch (type) {
                 case "LOGIN_SUCCESS":
-                    MainForm mainForm = new MainForm();
-                    mainForm.setVisible(true);
-
+                    appForm.setVisible(true);
+                    loginForm.dispose();
+                    try {
+                        serverConnection.getInstance().sendRefreshRequest();
+                    } catch (IOException e) { System.out.println("Lỗi khi cập nhật:" +e.getMessage()); }
                     break;
 
                 case "LOGIN_FAIL":
@@ -73,12 +76,41 @@ public class serverHandler extends Thread {
                     break;
 
                 case "REGISTER_SUCCESS":
-                    JOptionPane.showMessageDialog(null, "Đăng ký thành công", "Đăng ký thành công", JOptionPane.OK_OPTION);
+                    JOptionPane.showMessageDialog(null, "Đăng ký thành công", "Đăng ký thành công", JOptionPane.INFORMATION_MESSAGE);
+                    break;
+
+                case "UPLOAD_SUCCESS":
+                    JOptionPane.showMessageDialog(null, "Tải lên thành công", "Tải lên thành công", JOptionPane.INFORMATION_MESSAGE);
+                    try {
+                        serverConnection.getInstance().sendRefreshRequest();
+                    } catch (IOException e) { System.out.println("Lỗi khi cập nhật:" +e.getMessage()); }
+                    break;
+
+                case "FILE_LIST":
+                    String fileData = response.substring(response.indexOf("|") + 1);
+                    updateFileTable(fileData);
                     break;
 
                 default:
                     System.out.println("Phản hồi từ server: " + response);
                     break;
+            }
+        }
+    }
+
+    private void updateFileTable(String fileData) {
+        String[] fileEntries = fileData.split(";");
+
+        for (String entry : fileEntries) {
+            // Mỗi file có định dạng id|name|size
+            String[] fileDetails = entry.split("\\|");
+            if (fileDetails.length == 3) {
+                String id = fileDetails[0];
+                String name = fileDetails[1];
+                String size = fileDetails[2];
+
+                // Cập nhật bảng ở MainForm
+                appForm.addFileToTable(id, name, size);
             }
         }
     }

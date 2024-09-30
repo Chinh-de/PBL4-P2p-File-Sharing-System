@@ -12,41 +12,38 @@ public class server {
     // Mở server
     public void startServer() {
         try {
+            logBLL.getInstance().saveLog(null,"Start sever");
+
+
             serverSocket = new ServerSocket(SERVER_PORT);
             isRunning = true;
             System.out.println("Server is listening on port: " + SERVER_PORT);
 
-            // Gọi phương thức lắng nghe kết nối từ client
-            listenForClients();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+            //Lưu nhật ký server khởi động
+            while (isRunning) {
 
-    // Phương thức lắng nghe các kết nối từ client
-    private void listenForClients() {
-        while (isRunning) {
-            try {
                 // Chờ đợi kết nối từ client
                 Socket clientSocket = serverSocket.accept();
                 //Vì accept blocking, phải chờ server xử lí từng kết nối 1, xong mới tới kết nối khác.
                 // Khởi tạo một thread mới để xử lý client
                 clientHandler clientHandler = new clientHandler(clientSocket);
                 clientHandler.start();
-
+                
                 System.out.println("New client connected");
-            } catch (IOException e) {
-                e.printStackTrace();
             }
+        } catch (IOException e) {
+            e.printStackTrace();
+            logBLL.getInstance().saveLog(null,"Close sever with error: " + e.getMessage());
         }
     }
 
-    // Phương thức dừng server
+    //Dừng server
     public void stopServer() {
         try {
             isRunning = false;
             if (serverSocket != null && !serverSocket.isClosed()) {
                 serverSocket.close();
+                logBLL.getInstance().saveLog(null,"Close sever");
             }
         } catch (IOException e) {
             e.printStackTrace();

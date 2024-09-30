@@ -5,16 +5,18 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.net.SocketException;
+import java.util.List;
 
 import p2pfilesharing.server.DAL.fileDAL;
 import p2pfilesharing.server.DAL.file_peerDAL;
+import p2pfilesharing.server.DAL.onlinePeerManage;
 import p2pfilesharing.server.DAL.peerDAL;
-import p2pfilesharing.server.DTO.peer;
-import p2pfilesharing.server.DTO.file;
+import p2pfilesharing.server.DTO.*;
 
 public class clientHandler extends Thread {
     private Socket clientSocket;
-    private String username;
+    private String username = "";
 
     public clientHandler(Socket socket) {
         this.clientSocket = socket;
@@ -31,9 +33,16 @@ public class clientHandler extends Thread {
             {
                 handleMessage(message);
             }
-            clientSocket.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            if (username.isEmpty())
+                System.err.println("A User is not logged in offline: " + e.getMessage());
+            else
+            {
+                logBLL.getInstance().saveLog(username ,"Offline");
+                System.err.println("User "+ username +" offline: " + e.getMessage());
+            }
+        } finally {
+            closeConnection();
         }
     }
     
@@ -60,8 +69,36 @@ public class clientHandler extends Thread {
 
                 case "REFRESH":
                     handleRefresh();
+                    break;
+
+                case "LOST_FILES":
+                    handleLostFiles(parts);
+                    break;
+
+                case "DOWNLOAD":
+                    handleDownload(Integer.parseInt(parts[1]));
+                    break;
+
+                case "DOWNLOAD_SUCCESSFUL":
+                    onlinePeerManage.getInstance().getOnlinePeer(username).decreaseDownloads();
+                    logBLL.getInstance().saveLog(username,"Download file ID: " + parts[1] + " successful");
+                    //thêm user làm owner của file vừa tải
+                    file_peerDAL.getInstance().createfile_peer(Integer.parseInt(parts[1]), username, parts[2]);
+                    break;
+                case "DOWNLOAD_FAILED":
+                    onlinePeerManage.getInstance().getOnlinePeer(username).decreaseDownloads();
+                    logBLL.getInstance().saveLog(username,"Download file ID: " + parts[1] + " failed");
+                    break;
+                case "UPLOAD_SUCCESSFUL":
+                    onlinePeerManage.getInstance().getOnlinePeer(username).decreaseUploads();
+                    logBLL.getInstance().saveLog(username,"Send file ID: " + parts[1] + " successful");
+                    break;
+                case "UPLOAD_FAILED":
+                    onlinePeerManage.getInstance().getOnlinePeer(username).decreaseUploads();
+                    logBLL.getInstance().saveLog(username,"Send file ID: " + parts[1] + " failed");
+                    break;
                 default:
-                System.out.println("Thông điệp không hợp lệ: " + message);
+                System.out.println("Not handle: " + message);
                 break;
             }
         }
@@ -82,11 +119,23 @@ public class clientHandler extends Thread {
             if(tempPeer != null)
             {
                 if(hashPassword.compareTo(tempPeer.getHashPassword()) == 0) {
-                    sendResponseToClient("LOGIN_SUCCESS");
-                    this.username = username;
-                } else sendResponseToClient("LOGIN_FAILED");
+                    //Kiểm tra có đang online không
+                    if (onlinePeerManage.getInstance().isOnline(username))
+                        sendResponseToClient("PARALLEL_LOGIN");
+                    else{
+                        this.username = username;
+                        //thêm vào data online peer
+                        onlinePeerManage.getInstance().add(username, clientSocket.getInetAddress().getHostAddress());
+                        int peerPort = onlinePeerManage.getInstance().getOnlinePeer(username).getPort();
+
+                        sendRequestForCheckingExistingFiles(username);
+                        sendResponseToClient("LOGIN_SUCCESS|" + peerPort);
+                        logBLL.getInstance().saveLog(username,"Login");
+                    }
+
+                } else sendResponseToClient("LOGIN_FAIL");
             }
-            else sendResponseToClient("LOGIN_FAILED");
+            else sendResponseToClient("LOGIN_FAIL");
         } catch (Exception e) { }
     }
 
@@ -103,6 +152,7 @@ public class clientHandler extends Thread {
                 tempPeer.setHashPassword(hashPassword);
                 peerDAL.getInstance().addPeer(tempPeer);
                 sendResponseToClient("REGISTER_SUCCESS");
+                logBLL.getInstance().saveLog(username,"Register");
             }
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -114,6 +164,7 @@ public class clientHandler extends Thread {
         int fileId = fileDAL.getInstance().createFile(filename,size);
         file_peerDAL.getInstance().createfile_peer(fileId, username, path);
         sendResponseToClient("UPLOAD_SUCCESS");
+        logBLL.getInstance().saveLog(username,"Upload file ID: " + fileId);
     }
 
     private void handleRefresh() {
@@ -128,14 +179,79 @@ public class clientHandler extends Thread {
                     .append(f.getSize())
                     .append(";");
         }
-        if (!response.isEmpty()) {
+        if (!response.toString().equals("FILE_LIST|")) {
             response.deleteCharAt(response.length() - 1);
         }
         sendResponseToClient(response.toString());
     }
-    public String getUsername() {
-        return username;
+
+    private void sendRequestForCheckingExistingFiles(String username)
+    {
+        List<file_peer> listFP =file_peerDAL.getInstance().getAllfile_peersByPeerUsername(username);
+        StringBuilder response = new StringBuilder();
+        response.append("CHECK_EXISTING_FILE|");
+        for (file_peer fp: listFP)
+        {
+            response.append(fp.getFileid())
+                    .append("|")
+                    .append(fp.getPath())
+                    .append(";");
+        }
+        if (!response.toString().equals("CHECK_EXISTING_FILE|")) {
+            response.deleteCharAt(response.length() - 1);
+        }
+        sendResponseToClient(response.toString());
     }
+
+    private void handleLostFiles(String[] lostFile) {
+        //bỏ qua type, lấy các fileId
+        for(int i = 1; i < lostFile.length; i++) {
+            int fileId = Integer.parseInt(lostFile[i]);
+            file_peerDAL.getInstance().deletefile_peer(fileId, this.username);
+            logBLL.getInstance().saveLog(username,"Lost file ID: " + fileId);
+        }
+    }
+
+    private void handleDownload(int fileId) {
+        List<file_peer> owners = file_peerDAL.getInstance().getAllfile_peersByFileId(fileId);
+        //Nếu peer offline thì loại khỏi danh sách
+        owners.removeIf(fp -> !onlinePeerManage.getInstance().isOnline(fp.getPeerUsername()));
+        //Nếu không có client nào sở hữu file online thì phản hồi cho client
+        if (owners.isEmpty()) {
+            String response = ("NO_UPLOADER_ONLINE|" + fileDAL.getInstance().getFile(fileId).getName());
+            sendResponseToClient(response);
+        }
+        else {
+            //sắp xếp giảm dần theo điểm ưu tiên
+            owners.sort((o1, o2) -> Integer.compare(
+                    onlinePeerManage.getInstance().getOnlinePeer(o2.getPeerUsername()).getPriorityScore(),
+                    onlinePeerManage.getInstance().getOnlinePeer(o1.getPeerUsername()).getPriorityScore()) );
+            //lấy username của client có điểm ưu tiên cao nhất
+            String uploaderUsername = owners.getFirst().getPeerUsername();
+            String ip = onlinePeerManage.getInstance().getOnlinePeer(uploaderUsername).getIp();
+            int port = onlinePeerManage.getInstance().getOnlinePeer(uploaderUsername).getPort();
+            String path = file_peerDAL.getInstance().getfile_peer(fileId, uploaderUsername).getPath();
+            String fileName = fileDAL.getInstance().getFile(fileId).getName();
+            //gửi thông tin về cho client
+            String response = "UPLOADER_INFORMATION|" + fileId + "|" + fileName + "|" + ip + "|" + port + "|" + path;
+            sendResponseToClient(response);
+
+            //Tăng chỉ số upload, download của user tương ứng
+            onlinePeerManage.getInstance().getOnlinePeer(uploaderUsername).increaseUploads();
+            onlinePeerManage.getInstance().getOnlinePeer(username).increaseDownloads();
+        }
+    }
+
+
+    public void closeConnection() {
+        try{
+            clientSocket.close();
+            onlinePeerManage.getInstance().removePeer(username);
+        } catch (IOException exception) {
+            exception.printStackTrace();
+        }
+    }
+
 }
     
     

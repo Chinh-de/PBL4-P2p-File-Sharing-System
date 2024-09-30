@@ -1,27 +1,20 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/Application.java to edit this template
- */
 package p2pfilesharing.client.GUI;
 
 import java.io.IOException;
 import javax.swing.JFileChooser;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import p2pfilesharing.client.BLL.serverConnection;
 
-/**
- *
- * @author Admin
- */
 public class AppForm extends javax.swing.JFrame {
-
-    /**
-     * Creates new form AppForm
-     */
     public AppForm() {
         initComponents();
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception e) {
+        }
     }
 
     /**
@@ -56,9 +49,11 @@ public class AppForm extends javax.swing.JFrame {
         aboutMenuItem = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("P2P File Sharing System");
         setBackground(new java.awt.Color(51, 255, 255));
         setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
 
+        table_file.setBackground(new java.awt.Color(204, 255, 255));
         table_file.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
 
@@ -92,6 +87,11 @@ public class AppForm extends javax.swing.JFrame {
 
         btn_download.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
         btn_download.setText("Download");
+        btn_download.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_downloadActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -192,8 +192,8 @@ public class AppForm extends javax.swing.JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 500, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 500, Short.MAX_VALUE)
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -212,6 +212,7 @@ public class AppForm extends javax.swing.JFrame {
     private void btn_uploadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_uploadActionPerformed
         JFileChooser chooser = new JFileChooser();
         chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        chooser.setDialogTitle("Choose the file you want to upload");
         int result = chooser.showOpenDialog(this);
         if(result == JFileChooser.APPROVE_OPTION)
         {
@@ -234,6 +235,20 @@ public class AppForm extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_btn_refreshActionPerformed
 
+    private void btn_downloadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_downloadActionPerformed
+        int selectedIndex = table_file.getSelectedRow();
+        //Nếu có hàng được chọn mới thực hiện
+        if(selectedIndex != -1)
+        {
+            int fileId = Integer.parseInt(table_file.getValueAt(selectedIndex, 0).toString());
+            try {
+                serverConnection.getInstance().sendDownloadRequest(fileId);
+            } catch (IOException e) {
+                System.out.println("Lỗi:" + e.getMessage());
+            }
+        }
+    }//GEN-LAST:event_btn_downloadActionPerformed
+
     public void addFileToTable(String id, String name, String size) {
         DefaultTableModel model = (DefaultTableModel) table_file.getModel();
         model.setRowCount(0);
@@ -243,30 +258,10 @@ public class AppForm extends javax.swing.JFrame {
     }
                
     public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
         try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(AppForm.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(AppForm.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(AppForm.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(AppForm.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception e) {
         }
-        //</editor-fold>
-
-        /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
                 new AppForm().setVisible(true);

@@ -28,7 +28,7 @@ CREATE TABLE file_peer (
 CREATE TABLE log (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(255),
-    `action` INT NOT NULL,
+    `action` VARCHAR(255) NOT NULL,
     `time` TIMESTAMP NOT NULL,
     FOREIGN KEY (username) REFERENCES peer(username) ON DELETE CASCADE
 );

@@ -76,12 +76,24 @@ public class file_peerDAL {
 
     // Delete a file-peer relationship
     public void deletefile_peer(int fileId, String peerUsername) {
-        String sql = "DELETE FROM file_peer WHERE fileId = ? AND peerUsername = ?";
+        String deleteSQL = "DELETE FROM file_peer WHERE fileId = ? AND peerUsername = ?";
+        String checkOwnersSQL = "SELECT COUNT(*) FROM file_peer WHERE fileid = ?";
         try (Connection conn = getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, fileId);
-            pstmt.setString(2, peerUsername);
-            pstmt.executeUpdate();
+             PreparedStatement deleteStmt = conn.prepareStatement(deleteSQL);
+             PreparedStatement checkOwnersStmt = conn.prepareStatement(checkOwnersSQL)) {
+            //xóa owner file
+            deleteStmt.setInt(1, fileId);
+            deleteStmt.setString(2, peerUsername);
+            deleteStmt.executeUpdate();
+
+            //kiểm tra file còn owner nào không
+            checkOwnersStmt.setInt(1, fileId);
+            ResultSet owners = checkOwnersStmt.executeQuery();
+
+            //nếu không còn owner nào thì xóa file
+            if (owners.next() && owners.getInt(1) == 0) {
+               fileDAL.getInstance().deleteFile(fileId);
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }

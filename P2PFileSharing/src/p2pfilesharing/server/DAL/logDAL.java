@@ -31,7 +31,7 @@ public class logDAL {
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, Log.getUsername());
-            pstmt.setInt(2, Log.getAction());
+            pstmt.setString(2, Log.getAction());
             pstmt.setTimestamp(3, Timestamp.valueOf(Log.getTime()));
             pstmt.executeUpdate();
         } catch (SQLException e) {
@@ -51,7 +51,7 @@ public class logDAL {
                 Log = new log();
                 Log.setId(rs.getInt("id"));
                 Log.setUsername(rs.getString("username"));
-                Log.setAction(rs.getInt("action"));
+                Log.setAction(rs.getString("action"));
                 Log.setTime(rs.getTimestamp("time").toLocalDateTime());
             }
         } catch (SQLException e) {
@@ -66,7 +66,7 @@ public class logDAL {
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, Log.getUsername());
-            pstmt.setInt(2, Log.getAction());
+            pstmt.setString(2, Log.getAction());
             pstmt.setTimestamp(3, Timestamp.valueOf(Log.getTime()));
             pstmt.setInt(4, Log.getId());
             pstmt.executeUpdate();
@@ -98,7 +98,7 @@ public class logDAL {
                 log Log = new log();
                 Log.setId(rs.getInt("id"));
                 Log.setUsername(rs.getString("username"));
-                Log.setAction(rs.getInt("action"));
+                Log.setAction(rs.getString("action"));
                 Log.setTime(rs.getTimestamp("time").toLocalDateTime());
                 logs.add(Log);
             }

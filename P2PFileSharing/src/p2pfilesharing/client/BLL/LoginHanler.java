@@ -3,7 +3,7 @@ package p2pfilesharing.client.BLL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-public class passwordHasher {
+public class LoginHanler {
 
     // Hàm băm mật khẩu
     public static String hashPassword(String password) {
@@ -22,5 +22,16 @@ public class passwordHasher {
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static boolean ExamineLogin(String username, String password) {
+        if (username.length() < 6|| password.length() < 6) {
+            return false;
+        }
+        //Kiểm tra kí tự đặc biệt
+        if (!(username.matches("[a-zA-Z0-9]+") && password.matches("[a-zA-Z0-9]+") ) ) {
+            return false;
+        }
+        return true;
     }
 }

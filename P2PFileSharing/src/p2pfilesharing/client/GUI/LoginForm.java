@@ -1,10 +1,6 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/Application.java to edit this template
- */
 package p2pfilesharing.client.GUI;
 
-import p2pfilesharing.client.BLL.passwordHasher;
+import p2pfilesharing.client.BLL.LoginHanler;
 import p2pfilesharing.client.BLL.serverConnection;
 
 import javax.swing.*;
@@ -14,6 +10,11 @@ public class LoginForm extends javax.swing.JFrame {
 
     public LoginForm() {
         initComponents();
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception e) {
+        }
+        
     }
 
 
@@ -141,15 +142,13 @@ public class LoginForm extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btn_loginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_loginActionPerformed
-        if(txt_username.getText().isEmpty() || txt_password.getText().isEmpty())
-        {
-            JOptionPane.showMessageDialog(this, "Vui lòng nhập tài khoản và mật khẩu");
-        }
+        if (! LoginHanler.ExamineLogin( txt_username.getText(), txt_password.getText()) )
+            JOptionPane.showMessageDialog( this , "Username and password must be longer than 5 characters.\n They must only include the following characters: (a-z, A-Z, 0-9)\n Please check and try again!", "Format Errors", JOptionPane.ERROR_MESSAGE);
         else
         {
             try {
                 String username = txt_username.getText();
-                String hashPassword = passwordHasher.hashPassword(txt_password.getText());
+                String hashPassword = LoginHanler.hashPassword(txt_password.getText());
                 serverConnection.getInstance().sendLoginRequest(username, hashPassword);
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -167,7 +166,7 @@ public class LoginForm extends javax.swing.JFrame {
         {
             try {
                 String username = txt_username.getText();
-                String hashPassword = passwordHasher.hashPassword(txt_password.getText());
+                String hashPassword = LoginHanler.hashPassword(txt_password.getText());
                 serverConnection.getInstance().sendRegisterRequest(username,hashPassword);
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -177,6 +176,10 @@ public class LoginForm extends javax.swing.JFrame {
 
 
     public static void main(String args[]) {
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception e) {
+        }
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
                 if ("Nimbus".equals(info.getName())) {
@@ -201,7 +204,7 @@ public class LoginForm extends javax.swing.JFrame {
         });
     }
 
-    // Variables declaration - do not modify//GEN-BEGIN:variables
+    // Variables declaration - do not modify                     
     private javax.swing.JButton btn_Register;
     private javax.swing.JButton btn_login;
     private javax.swing.JLabel jLabel1;

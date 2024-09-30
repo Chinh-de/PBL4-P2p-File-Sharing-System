@@ -1,5 +1,6 @@
 package p2pfilesharing.client.BLL;
 
+import javax.swing.*;
 import java.io.*;
 import java.net.*;
 
@@ -28,9 +29,11 @@ public class serverConnection {
             }
             return instance;
         } catch (IOException e) {
+            JOptionPane.showMessageDialog(null , "Error connecting to the server", "Error connecting to the server", JOptionPane.ERROR_MESSAGE);
             throw new RuntimeException(e);
         }
     }
+
 
     // Gửi yêu cầu đăng nhập tới server
     public void sendLoginRequest(String username, String hashPassword) {
@@ -49,21 +52,34 @@ public class serverConnection {
         output.println(request);
     }
 
+    public void sendDownloadRequest (int fileId)
+    {
+        String request = "DOWNLOAD|" + fileId;
+        output.println(request);
+    }
+
     public void sendRefreshRequest ()
     {
         String request = "REFRESH|";
         output.println(request);
     }
-
-    // Nhận phản hồi từ server
-    public String receiveResponse() throws IOException {
-        return input.readLine(); // Đọc phản hồi từ server
+    public void sendDownloadSuccesful(int fileId, String path){
+        String request = "DOWNLOAD_SUCCESSFUL|" + fileId + "|" + path;
+        output.println(request);
+    }
+    public void sendDownloadFailed(int fileId){
+        String request = "DOWNLOAD_FAILED|" + fileId;
+        output.println(request);
+    }
+    public void sendUploadSuccessful(int fileId){
+        String request = "UPLOAD_SUCCESSFUL|" + fileId;
+        output.println(request);
+    }
+    public void sendUploadFailed(int fileId){
+        String request = "UPLOAD_FAILED|" + fileId;
+        output.println(request);
     }
 
-    // Gửi các yêu cầu khác tới server
-    public void sendRequest(String request) {
-        output.println(request); // Gửi bất kỳ yêu cầu nào tới server
-    }
 
     // Đóng kết nối với server
     public void closeConnection() {

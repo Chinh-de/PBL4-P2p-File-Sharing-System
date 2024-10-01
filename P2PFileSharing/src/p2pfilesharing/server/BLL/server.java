@@ -1,6 +1,8 @@
 package p2pfilesharing.server.BLL;
 
 import java.io.IOException;
+import java.net.Inet4Address;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -17,7 +19,7 @@ public class server {
 
             serverSocket = new ServerSocket(SERVER_PORT);
             isRunning = true;
-            System.out.println("Server is listening on port: " + SERVER_PORT);
+            System.out.println("Server is listening on IP: " + InetAddress.getLocalHost().getHostAddress() + " and port: " + SERVER_PORT);
 
             //Lưu nhật ký server khởi động
             while (isRunning) {

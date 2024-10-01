@@ -25,7 +25,7 @@ public class PeerListener extends Thread{
             }
         }
         catch(IOException e) {
-            e.printStackTrace();
+            System.out.println("Error: Can't create Socket as peer Server: "+e.getMessage());
         }
         finally {
             try {

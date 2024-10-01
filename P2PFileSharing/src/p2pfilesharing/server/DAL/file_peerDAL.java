@@ -35,7 +35,7 @@ public class file_peerDAL {
             pstmt.setString(3, path);
             pstmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
     }
 
@@ -55,7 +55,7 @@ public class file_peerDAL {
                 filePeer.setPath(rs.getString("path"));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
         return filePeer;
     }
@@ -70,7 +70,7 @@ public class file_peerDAL {
             pstmt.setString(3, filePeer.getPeerUsername());
             pstmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
     }
 
@@ -95,7 +95,7 @@ public class file_peerDAL {
                fileDAL.getInstance().deleteFile(fileId);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
     }
 
@@ -115,7 +115,7 @@ public class file_peerDAL {
                 filePeers.add(filePeer);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
         return filePeers;
     }
@@ -136,7 +136,7 @@ public class file_peerDAL {
                 filePeers.add(filePeer);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
         return filePeers;
     }

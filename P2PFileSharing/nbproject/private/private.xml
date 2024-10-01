@@ -5,6 +5,7 @@
         <group>
             <file>file:/D:/Study_space/Ki5/PBL4/P2PFileSharing/src/p2pfilesharing/client/BLL/serverConnection.java</file>
             <file>file:/D:/Study_space/Ki5/PBL4/P2PFileSharing/src/p2pfilesharing/server/DTO/file.java</file>
+            <file>file:/D:/Study_space/Ki5/PBL4/P2PFileSharing/src/p2pfilesharing/server/main.java</file>
             <file>file:/D:/Study_space/Ki5/PBL4/P2PFileSharing/src/p2pfilesharing/server/DAL/fileDAL.java</file>
             <file>file:/D:/Study_space/Ki5/PBL4/P2PFileSharing/src/p2pfilesharing/client/BLL/PeerDownloader.java</file>
             <file>file:/D:/Study_space/Ki5/PBL4/P2PFileSharing/src/p2pfilesharing/server/DTO/file_peer.java</file>

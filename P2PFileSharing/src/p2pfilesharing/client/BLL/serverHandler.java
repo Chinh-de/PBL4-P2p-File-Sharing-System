@@ -22,9 +22,9 @@ public class serverHandler extends Thread {
             // Thiết lập các luồng vào/ra
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()), true);
-            
+
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println("Error Can't connect to Server: "+e.getMessage());
         }
     }
 
@@ -42,12 +42,13 @@ public class serverHandler extends Thread {
                 handleServerResponse(response);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println("Error Can't readLine input: "+e.getMessage());
         } finally {
             try {
-                socket.close(); // Đóng kết nối khi kết thúc
+                if(socket != null)
+                    socket.close(); // Đóng kết nối khi kết thúc
             } catch (Exception e) {
-                e.printStackTrace();
+                System.out.println("Error Can't close connection to Server: "+e.getMessage());
             }
         }
     }
@@ -63,12 +64,13 @@ public class serverHandler extends Thread {
                 case "LOGIN_SUCCESS":
                     appForm.setVisible(true);
                     loginForm.dispose();
+                    //bắt đầu lắng nghe các peer khác
                     try {
                         PeerListener peerListener = new PeerListener(Integer.parseInt(parts[1]));
                         peerListener.start();
                         serverConnection.getInstance().sendRefreshRequest();
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        System.out.println("Error Can't get server connection: "+e.getMessage());
                     }
                     break;
 
@@ -92,7 +94,7 @@ public class serverHandler extends Thread {
                     JOptionPane.showMessageDialog(appForm, "Upload successful", "Upload successful", JOptionPane.INFORMATION_MESSAGE);
                     try {
                         serverConnection.getInstance().sendRefreshRequest();
-                    } catch (IOException e) { System.out.println("Lỗi khi cập nhật:" +e.getMessage()); }
+                    } catch (IOException e) { System.out.println("Error: Can't Refresh table file: " +e.getMessage()); }
                     break;
 
                 case "FILE_LIST":
@@ -114,7 +116,7 @@ public class serverHandler extends Thread {
                     break;
                 
                 default:
-                    System.out.println("Phản hồi từ server: " + response);
+                    System.out.println("Not handle: " + response);
                     break;
             }
         }
@@ -130,11 +132,11 @@ public class serverHandler extends Thread {
                 String id = fileDetails[0];
                 String name = fileDetails[1];
                 String size = fileDetails[2];
-
-                // Cập nhật bảng ở MainForm
+                // Cập nhật bảng ở AppForm
                 appForm.addFileToTable(id, name, size);
             }
         }
+
     }
 
     private void checkExistingFiles(String yourFiles) {

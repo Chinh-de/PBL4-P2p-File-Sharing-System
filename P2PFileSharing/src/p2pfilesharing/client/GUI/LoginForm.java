@@ -158,10 +158,8 @@ public class LoginForm extends javax.swing.JFrame {
     }//GEN-LAST:event_btn_loginActionPerformed
 
     private void btn_RegisterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_RegisterActionPerformed
-        if(txt_username.getText().isEmpty() || txt_password.getText().isEmpty())
-        {
-            JOptionPane.showMessageDialog(this, "Vui lòng nhập tài khoản và mật khẩu");
-        }
+        if (! LoginHanler.ExamineLogin( txt_username.getText(), txt_password.getText()) )
+            JOptionPane.showMessageDialog( this , "Username and password must be longer than 5 characters.\n They must only include the following characters: (a-z, A-Z, 0-9)\n Please check and try again!", "Format Errors", JOptionPane.ERROR_MESSAGE);
         else
         {
             try {

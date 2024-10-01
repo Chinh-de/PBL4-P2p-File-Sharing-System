@@ -35,7 +35,7 @@ public class logDAL {
             pstmt.setTimestamp(3, Timestamp.valueOf(Log.getTime()));
             pstmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
     }
 
@@ -55,7 +55,7 @@ public class logDAL {
                 Log.setTime(rs.getTimestamp("time").toLocalDateTime());
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
         return Log;
     }
@@ -71,7 +71,7 @@ public class logDAL {
             pstmt.setInt(4, Log.getId());
             pstmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
     }
 
@@ -83,7 +83,7 @@ public class logDAL {
             pstmt.setInt(1, id);
             pstmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
     }
 
@@ -103,7 +103,7 @@ public class logDAL {
                 logs.add(Log);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
         return logs;
     }

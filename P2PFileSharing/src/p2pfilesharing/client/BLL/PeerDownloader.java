@@ -21,7 +21,7 @@ public class PeerDownloader extends Thread {
         try {
             this.socket = new Socket(SenderIp, SenderPort);
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Error Can't connect to other peer: "+e.getMessage());
         }
     }
     @Override
@@ -37,7 +37,7 @@ public class PeerDownloader extends Thread {
             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
             out.println(message);
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Error Can't send request download to peer: "+e.getMessage());
         }
     }
 
@@ -63,7 +63,7 @@ public class PeerDownloader extends Thread {
                 serverConnection.getInstance().sendDownloadSuccesful(fileid, pathToFile);
                 System.out.println("File " + fileName + " downloaded successfully!");
             } catch (IOException e) {
-                e.printStackTrace();
+                System.out.println("Error: Downloaded failed: "+e.getMessage());
                 JOptionPane.showMessageDialog(null, "File " + fileName + " Downloaded failed!", "Error", JOptionPane.ERROR_MESSAGE);
                 try {
                     serverConnection.getInstance().sendDownloadFailed(fileid);
@@ -75,7 +75,7 @@ public class PeerDownloader extends Thread {
                 try {
                     socket.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    System.out.println("Error: Can't close peer socket: "+e.getMessage());
                 }
             }
         }

@@ -37,7 +37,7 @@ public class fileDAL {
                 return rs.getInt(1);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
         return -1;
     }
@@ -56,7 +56,7 @@ public class fileDAL {
                 file.setName(rs.getString("name"));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
         return file;
     }
@@ -70,7 +70,7 @@ public class fileDAL {
             pstmt.setInt(3, file.getId());
             pstmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
     }
 
@@ -81,7 +81,7 @@ public class fileDAL {
             pstmt.setInt(1, id);
             pstmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
     }
 
@@ -99,7 +99,7 @@ public class fileDAL {
                 files.add(file);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
         return files;
     }

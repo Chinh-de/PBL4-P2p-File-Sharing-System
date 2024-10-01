@@ -30,7 +30,7 @@ public class onlinePeerManage {
         onlinePeer peer = new onlinePeer(ip);
         onlinePeers.put(username, peer);
     }
-    
+
     // xóa peer offline
     public void removePeer(String username){
         onlinePeers.remove(username);

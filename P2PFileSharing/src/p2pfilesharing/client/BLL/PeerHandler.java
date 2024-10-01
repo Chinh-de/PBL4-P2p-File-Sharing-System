@@ -32,7 +32,7 @@ public class PeerHandler implements Runnable {
                 }
             }
         } catch (IOException e) {
-            System.out.println("Đã đóng socket gửi file");
+            System.out.println("Notice: End sending file, Closed socket");
         }
     }
 
@@ -52,18 +52,18 @@ public class PeerHandler implements Runnable {
             serverConnection.getInstance().sendUploadSuccessful(fileId);
 
         } catch (IOException e){
-            e.printStackTrace();
+            System.out.println(e.getMessage());
             try {
                 serverConnection.getInstance().sendUploadFailed(fileId);
             } catch (IOException e1) {
-                e1.printStackTrace();
+                System.out.println("Send file fail: "+e1.getMessage());
             }
         } finally {
             try {
                 this.keepAlive = false;
                 peerSocket.close();
             } catch (IOException e) {
-                e.printStackTrace();
+                System.out.println("Error Can't close socket: " + e.getMessage());
             }
         }
     }

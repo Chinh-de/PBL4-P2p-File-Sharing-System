@@ -6,16 +6,23 @@ import java.net.*;
 
 public class serverConnection {
     private static serverConnection instance;
-    private Socket socket;
-    private BufferedReader input;
-    private PrintWriter output;
+    private final Socket socket;
+    private final BufferedReader input;
+    private final PrintWriter output;
 
-    // Dùng IP và port cố định
-    private static final String SERVER_IP = "127.0.0.1";
     private static final int SERVER_PORT = 6969;
 
     // Private constructor để ngăn tạo instance từ bên ngoài
     private serverConnection() throws IOException {
+        String SERVER_IP = "";
+        while (SERVER_IP.isEmpty())
+        {
+            SERVER_IP = JOptionPane.showInputDialog(null, "Enter IP of Server:");
+            if (SERVER_IP == null) {
+                JOptionPane.showMessageDialog(null, "Exiting the application.", "Exit", JOptionPane.WARNING_MESSAGE);
+                System.exit(0); // Thoát chương trình
+            }
+        }
         socket = new Socket(SERVER_IP, SERVER_PORT);
         input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         output = new PrintWriter(socket.getOutputStream(), true);
@@ -30,7 +37,8 @@ public class serverConnection {
             return instance;
         } catch (IOException e) {
             JOptionPane.showMessageDialog(null , "Error connecting to the server", "Error connecting to the server", JOptionPane.ERROR_MESSAGE);
-            throw new RuntimeException(e);
+            instance = null;
+            return getInstance();
         }
     }
 

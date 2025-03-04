@@ -1,0 +1,197 @@
+package p2pfilesharing.client.BLL;
+
+import p2pfilesharing.client.GUI.AppForm;
+import p2pfilesharing.client.GUI.HistoryForm;
+import p2pfilesharing.client.GUI.LoginForm;
+
+import javax.swing.*;
+import java.io.*;
+import java.net.Socket;
+
+public class serverHandler extends Thread {
+    private Socket socket;
+    private BufferedReader in;
+    private PrintWriter out;
+    LoginForm loginForm = new LoginForm();
+    AppForm appForm;
+
+
+    public serverHandler() {
+        try {
+            // Kết nối đến server
+            socket = serverConnection.getInstance().getSocket();
+            // Thiết lập các luồng vào/ra
+            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()), true);
+
+        } catch (Exception e) {
+            System.out.println("Error Can't connect to Server: "+e.getMessage());
+        }
+    }
+
+    public void sendRequest(String request) {
+        out.println(request);
+    }
+
+    // Lắng nghe phản hồi từ server
+    @Override
+    public void run() {
+        loginForm.setVisible(true);
+        try {
+            String response;
+            while ((response = in.readLine()) != null) {
+                handleServerResponse(response);
+            }
+        } catch (Exception e) {
+            System.out.println("Error Can't readLine input: "+e.getMessage());
+        } finally {
+            try {
+                if(socket != null)
+                    socket.close(); // Đóng kết nối khi kết thúc
+            } catch (Exception e) {
+                System.out.println("Error Can't close connection to Server: "+e.getMessage());
+            }
+        }
+    }
+
+    // Xử lý phản hồi từ server
+    private void handleServerResponse(String response) {
+        // Lấy từ khóa đầu tiên của phản hồi để so sánh
+        String[] parts = response.split("\\|");
+        if (parts.length > 0) {
+            String type = parts[0]; //lấy type of request
+
+            switch (type) {
+                case "LOGIN_SUCCESS":
+                    String username = parts[2];
+                    int port = Integer.parseInt(parts[1]);
+                    appForm = new AppForm(username, port);
+                    appForm.setVisible(true);
+                    loginForm.dispose();
+                    //bắt đầu lắng nghe các peer khác
+                    try {
+                        PeerListener peerListener = new PeerListener(port);
+                        peerListener.start();
+                        serverConnection.getInstance().sendRefreshRequest();
+                    } catch (IOException e) {
+                        System.out.println("Error Can't get server connection: "+e.getMessage());
+                    }
+                    break;
+
+                case "LOGIN_FAIL":
+                    JOptionPane.showMessageDialog(loginForm, "Error: Wrong account or password!", "Login error", JOptionPane.ERROR_MESSAGE);
+                    break;
+
+                case "PARALLEL_LOGIN":
+                    JOptionPane.showMessageDialog(loginForm, "Error: Your account is being accessed from another location!", "Login error", JOptionPane.ERROR_MESSAGE);
+                    break;
+
+                case "EXISTED_USERNAME":
+                    JOptionPane.showMessageDialog(loginForm, "Error: Username already exists", "Register error", JOptionPane.ERROR_MESSAGE);
+                    break;
+
+                case "REGISTER_SUCCESS":
+                    JOptionPane.showMessageDialog(loginForm, "Register successful", "Register successful", JOptionPane.INFORMATION_MESSAGE);
+                    break;
+
+                case "UPLOAD_SUCCESS":
+                    String filenames = parts[1];
+                    String f = filenames.replace(" ;", "\n");
+                    JOptionPane.showMessageDialog(appForm, "Upload " + f + " successful", "Upload successful", JOptionPane.INFORMATION_MESSAGE);
+                    try {
+                        serverConnection.getInstance().sendRefreshRequest();
+                    } catch (IOException e) { System.out.println("Error: Can't Refresh table file: " +e.getMessage()); }
+                    break;
+
+                case "FILE_LIST":
+                    String fileData = response.substring(response.indexOf("|") + 1);
+                    updateFileTable(fileData);
+                    break;
+
+                case "CHECK_EXISTING_FILE":
+                    String yourFiles = response.substring(response.indexOf("|") + 1);
+                    checkExistingFiles(yourFiles);
+                    break;
+
+                case "NO_UPLOADER_ONLINE":
+                    String filename = parts[1];
+                    JOptionPane.showMessageDialog(loginForm, "No peer owns the file" + filename + " online!", "Download error", JOptionPane.ERROR_MESSAGE);
+                    break;
+
+                case "UPLOADER_INFORMATION":
+                    int fileid = Integer.parseInt(parts[1]), uploaderPort = Integer.parseInt(parts[4]);
+                    String fname = parts[2], ip = parts[3], path = parts[5];
+                    handleDownload(fileid , fname , ip, uploaderPort , path);
+                    break;
+                case "HISTORY":
+                    handleHistory(parts);
+                    break;
+                default:
+                    System.out.println("Not handle: " + response);
+                    break;
+            }
+        }
+    }
+
+    private void updateFileTable(String fileData) {
+        String[] fileEntries = fileData.split(";");
+        appForm.clearTableFile();
+        for (String entry : fileEntries) {
+            // Mỗi file có định dạng id|name|size
+            String[] fileDetails = entry.split("\\|");
+            if (fileDetails.length == 3) {
+                String id = fileDetails[0];
+                String name = fileDetails[1];
+                String size = fileDetails[2];
+                // Cập nhật bảng ở AppForm
+                appForm.addFileToTable(id, name, size);
+            }
+            
+        }
+
+    }
+
+    private void checkExistingFiles(String yourFiles) {
+        String[] fileEntries = yourFiles.split(";");
+
+        StringBuilder response = new StringBuilder();
+        response.append("LOST_FILES|");
+        for (String entry : fileEntries) {
+            String[] file = entry.split("\\|");
+            if (file.length == 2) {
+                String path = file[1];
+                File f = new File(path);
+                if (!f.exists()) response.append(file[0]).append("|"); // trả về fileId nếu file đã bị mất
+            }
+        }
+
+        //Nếu có fileid được add vào thì bỏ kí tự cuối cùng và gửi phản hồi cho server
+        if (!response.toString().equals("LOST_FILES|")) {
+            response.deleteCharAt(response.length() - 1);
+            sendRequest(response.toString());
+        }
+    }
+
+    private void handleDownload(int fileId, String fileName, String Ip, int port, String path) {
+        JFileChooser chooser = new JFileChooser();
+        chooser.setDialogTitle("Choose file storage location for: " +  fileName);
+        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        int result = chooser.showOpenDialog(appForm);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            String savePath = chooser.getSelectedFile().getAbsolutePath();
+            PeerDownloader peerDownloader = new PeerDownloader(fileId, path, Ip, port, savePath);
+            peerDownloader.start();
+        }
+    }
+
+    private void handleHistory(String[] parts){
+        HistoryForm historyForm = new HistoryForm(appForm);
+        for (int i= parts.length-1; i > 0; i--) {
+            String[] details = parts[i].split(";");
+            String time = details[0];
+            String activity = details[1];
+            historyForm.AddRow(time, activity);
+        }
+        historyForm.setVisible(true);
+    }
+}

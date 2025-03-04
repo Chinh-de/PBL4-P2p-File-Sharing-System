@@ -1,0 +1,11 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="P2PFileSharing:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/P2PFileSharing_jar</output-path>
+    <root id="archive" name="P2PFileSharing.jar">
+      <element id="module-output" name="P2PFileSharing" />
+      <element id="library" level="application" name="mysql-connector-java" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/src/lib/mysql-connector-java-8.0.28.jar" path-in-jar="/" />
+      <element id="library" level="project" name="mysql-connector-java" />
+    </root>
+  </artifact>
+</component>
